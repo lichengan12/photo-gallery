@@ -1,1 +1,240 @@
-placeholder
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Gallery</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #eaeaea;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #e94560, #f5a623);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    p.subtitle {
+      color: #a0a0a0;
+      font-size: 1.1rem;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(233, 69, 96, 0.25);
+    }
+    .card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      background: #0d1b2a;
+    }
+    .card .caption {
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: #bbb;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+      max-width: 95%;
+      max-height: 85vh;
+      object-fit: contain;
+      border-radius: 8px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    .lightbox .close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      font-size: 2.5rem;
+      color: #fff;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.8;
+    }
+    .lightbox .close:hover { opacity: 1; }
+    .lightbox .nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 3rem;
+      color: #fff;
+      cursor: pointer;
+      padding: 1rem;
+      opacity: 0.7;
+      user-select: none;
+    }
+    .lightbox .nav:hover { opacity: 1; }
+    .lightbox .prev { left: 0.5rem; }
+    .lightbox .next { right: 0.5rem; }
+    .lightbox .info {
+      margin-top: 1rem;
+      color: #ccc;
+      font-size: 0.95rem;
+    }
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 1.8rem; }
+      .gallery { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .card img { height: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Photo Gallery</h1>
+    <p class="subtitle">Memories from the collection · 42 photos</p>
+  </header>
+
+  <div class="gallery" id="gallery"></div>
+
+  <div class="lightbox" id="lightbox">
+    <span class="close" onclick="closeLightbox()">&times;</span>
+    <span class="nav prev" onclick="nav(-1)">&#10094;</span>
+    <img id="lightbox-img" src="" alt="">
+    <span class="nav next" onclick="nav(1)">&#10095;</span>
+    <div class="info" id="lightbox-info"></div>
+  </div>
+
+  <footer>
+    <p>Hosted on GitHub Pages · Photos retrieved from Google Drive</p>
+  </footer>
+
+  <script>
+    const photos = [
+      "photos/5L3 Best boy camper.jpg",
+      "photos/5L3 Best girl camper.jpg",
+      "photos/Copy of 20260819_110424.jpg",
+      "photos/Copy of 20260819_110551.jpg",
+      "photos/IMG20260817104416.jpg",
+      "photos/IMG20260817133709.jpg",
+      "photos/IMG20260817135111.jpg",
+      "photos/IMG20260817135152.jpg",
+      "photos/IMG20260817142318.jpg",
+      "photos/IMG20260817142416.jpg",
+      "photos/IMG20260817142530.jpg",
+      "photos/IMG20260817142541.jpg",
+      "photos/IMG20260817142622.jpg",
+      "photos/IMG20260817143311.jpg",
+      "photos/IMG20260817143336.jpg",
+      "photos/IMG20260817143349.jpg",
+      "photos/IMG20260817143407.jpg",
+      "photos/IMG20260817143414.jpg",
+      "photos/IMG20260817143657.jpg",
+      "photos/IMG20260817145848.jpg",
+      "photos/IMG_1523.jpg",
+      "photos/IMG_1524.jpg",
+      "photos/IMG_1525.jpg",
+      "photos/IMG_1526.jpg",
+      "photos/IMG_1527.jpg",
+      "photos/IMG_1530.jpg",
+      "photos/IMG_1531.jpg",
+      "photos/IMG_1532.jpg",
+      "photos/IMG_1533.jpg",
+      "photos/IMG_1534.jpg",
+      "photos/IMG_1550.jpg",
+      "photos/IMG_1566.jpg",
+      "photos/IMG_1567.jpg",
+      "photos/IMG_1574.jpg",
+      "photos/IMG_1575.jpg",
+      "photos/IMG_1580.jpg",
+      "photos/IMG_1601.jpg",
+      "photos/IMG_1602.jpg",
+      "photos/IMG_1603.jpg",
+      "photos/IMG_1604.jpg",
+      "photos/IMG_1605.jpg",
+      "photos/IMG_1606.jpg",
+    ];
+
+    const gallery = document.getElementById('gallery');
+    let current = 0;
+
+    photos.forEach((src, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.onclick = () => openLightbox(i);
+      const img = document.createElement('img');
+      img.src = src;
+      img.loading = 'lazy';
+      img.alt = src.split('/').pop();
+      const caption = document.createElement('div');
+      caption.className = 'caption';
+      caption.textContent = src.split('/').pop().replace(/\.[^.]+$/, '');
+      card.appendChild(img);
+      card.appendChild(caption);
+      gallery.appendChild(card);
+    });
+
+    function openLightbox(i) {
+      current = i;
+      document.getElementById('lightbox-img').src = photos[i];
+      document.getElementById('lightbox-info').textContent = photos[i].split('/').pop() + ' (' + (i+1) + '/' + photos.length + ')';
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    function nav(dir) {
+      current = (current + dir + photos.length) % photos.length;
+      openLightbox(current);
+    }
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('lightbox').classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') nav(-1);
+      if (e.key === 'ArrowRight') nav(1);
+    });
+    document.getElementById('lightbox').addEventListener('click', e => {
+      if (e.target.id === 'lightbox') closeLightbox();
+    });
+  </script>
+</body>
+</html>
